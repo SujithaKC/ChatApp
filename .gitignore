@@ -38,7 +38,7 @@ migrate_working_dir/
 .dartServices/
 .json
 .firebaserc
-.Firebase
+.firebase
 # Symbolication related
 app.*.symbols
 
