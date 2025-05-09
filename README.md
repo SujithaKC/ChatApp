@@ -67,8 +67,7 @@ flutter pub get
 
 flutter run
 
----
-###🌐 Live Demo
+### 🌐 Live Demo
 
 🚀 Check out the live web version here:
 👉 https://chatapp-b36d8.web.app
