@@ -57,8 +57,6 @@ cd ChatApp
 
 flutterfire configure
 
-```
-
 6. This generates `firebase_options.dart` in `lib/`.
 
 ### 📦 Install Dependencies
