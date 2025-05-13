@@ -1,3 +1,5 @@
+// This file defines the ChatListScreen, which displays a list of chats (individual or group) based on the selected chat type.
+// It uses providers for state management and RxDart for combining streams of individual and group chats.
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +18,7 @@ import 'group_chat_screen.dart';
 import 'group_create_screen.dart';
 
 class ChatListScreen extends StatefulWidget {
+  // Represents the type of chat to display (e.g., 'individual', 'group', or 'all').
   final String chatType;
 
   const ChatListScreen({Key? key, required this.chatType}) : super(key: key);
@@ -25,17 +28,22 @@ class ChatListScreen extends StatefulWidget {
 }
 
 class _ChatListScreenState extends State<ChatListScreen> {
+  // Controller for the search input field.
   final _searchController = TextEditingController();
+  // Controller for the email input field when adding a new friend.
   final _newFriendEmailController = TextEditingController();
+  // Stores the current search query.
   String _searchQuery = '';
 
   @override
   void dispose() {
+    // Dispose controllers to free resources.
     _searchController.dispose();
     _newFriendEmailController.dispose();
     super.dispose();
   }
 
+  // Formats a timestamp into a readable string (e.g., 'HH:mm' for today or 'DD/MM' for other days).
   String _formatTimestamp(DateTime? dateTime) {
     if (dateTime == null) return '';
     final now = DateTime.now();
@@ -47,20 +55,24 @@ class _ChatListScreenState extends State<ChatListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Determine the current theme mode (dark or light).
     final isDarkMode = Provider.of<ThemeProvider>(context).isDarkMode;
     return MultiProvider(
       providers: [
+        // Provide instances of ChatViewModel and GroupChatViewModel for state management.
         ChangeNotifierProvider(create: (_) => ChatViewModel()),
         ChangeNotifierProvider(create: (_) => GroupChatViewModel()),
       ],
       child: Builder(
         builder: (context) {
+          // Access the view models for chat and group chat.
           final chatViewModel = Provider.of<ChatViewModel>(context);
           final groupChatViewModel = Provider.of<GroupChatViewModel>(context);
 
           return Scaffold(
             appBar: AppBar(
-              leading: null, // Remove back button for individual and group tabs
+              automaticallyImplyLeading: false, // Remove the back button from the app bar.
+              // Display the title based on the chat type.
               title: Text(
                 widget.chatType == 'all'
                     ? 'All Chats'
@@ -70,70 +82,11 @@ class _ChatListScreenState extends State<ChatListScreen> {
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
               actions: [
+                // Add friend or group based on the chat type.
                 if (widget.chatType == 'individual')
                   IconButton(
                     icon: const Icon(Icons.person_add),
-                    onPressed: () => showDialog(
-                      context: context,
-                      builder: (_) => AlertDialog(
-                        title: Text(
-                          'Add New Friend',
-                          style: TextStyle(
-                            color: isDarkMode ? AppColors.darkOnSurface : AppColors.lightOnSurface,
-                          ),
-                        ),
-                        content: TextField(
-                          controller: _newFriendEmailController,
-                          decoration: InputDecoration(
-                            labelText: 'Friend Email',
-                            labelStyle: TextStyle(
-                              color: isDarkMode ? AppColors.darkOnSurface : AppColors.lightOnSurface,
-                            ),
-                          ),
-                          style: TextStyle(
-                            color: isDarkMode ? AppColors.darkOnSurface : AppColors.lightOnSurface,
-                          ),
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: Text(
-                              'Cancel',
-                              style: TextStyle(
-                                color: isDarkMode ? AppColors.darkOnSurface : AppColors.lightOnSurface,
-                              ),
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () async {
-                              await chatViewModel.startChat(_newFriendEmailController.text);
-                              if (chatViewModel.errorMessage != null) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text(chatViewModel.errorMessage!)),
-                                );
-                              } else {
-                                Navigator.pop(context); // Close the dialog
-                                Navigator.pushNamed(
-                                  context,
-                                  AppRoutes.chat,
-                                  arguments: {
-                                    'chatId': chatViewModel.chats.last.id,
-                                    'friendId': chatViewModel.users.last.id,
-                                  },
-                                );
-                              }
-                              _newFriendEmailController.clear();
-                            },
-                            child: Text(
-                              'Start Chat',
-                              style: TextStyle(
-                                color: isDarkMode ? AppColors.darkOnSurface : AppColors.lightOnSurface,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    onPressed: () => _showAddFriendDialog(context, chatViewModel, isDarkMode),
                   ),
                 if (widget.chatType != 'individual')
                   IconButton(
@@ -144,6 +97,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
             ),
             body: Column(
               children: [
+                // Search bar for filtering chats.
                 Padding(
                   padding: const EdgeInsets.all(16),
                   child: TextField(
@@ -160,6 +114,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                     },
                   ),
                 ),
+                // Display error messages if any.
                 if (chatViewModel.errorMessage != null || groupChatViewModel.errorMessage != null)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -168,6 +123,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                       style: TextStyle(color: isDarkMode ? AppColors.darkError : AppColors.lightError),
                     ),
                   ),
+                // Display the list of chats.
                 Expanded(
                   child: _buildChatList(context, chatViewModel, groupChatViewModel),
                 ),
@@ -179,6 +135,72 @@ class _ChatListScreenState extends State<ChatListScreen> {
     );
   }
 
+  // Show a dialog to add a new friend.
+  void _showAddFriendDialog(BuildContext context, ChatViewModel chatViewModel, bool isDarkMode) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(
+          'Add New Friend',
+          style: TextStyle(
+            color: isDarkMode ? AppColors.darkOnSurface : AppColors.lightOnSurface,
+          ),
+        ),
+        content: TextField(
+          controller: _newFriendEmailController,
+          decoration: InputDecoration(
+            labelText: 'Friend Email',
+            labelStyle: TextStyle(
+              color: isDarkMode ? AppColors.darkOnSurface : AppColors.lightOnSurface,
+            ),
+          ),
+          style: TextStyle(
+            color: isDarkMode ? AppColors.darkOnSurface : AppColors.lightOnSurface,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancel',
+              style: TextStyle(
+                color: isDarkMode ? AppColors.darkOnSurface : AppColors.lightOnSurface,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () async {
+              await chatViewModel.startChat(_newFriendEmailController.text);
+              if (chatViewModel.errorMessage != null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(chatViewModel.errorMessage!)),
+                );
+              } else {
+                Navigator.pop(context); // Close the dialog
+                Navigator.pushNamed(
+                  context,
+                  AppRoutes.chat,
+                  arguments: {
+                    'chatId': chatViewModel.chats.last.id,
+                    'friendId': chatViewModel.users.last.id,
+                  },
+                );
+              }
+              _newFriendEmailController.clear();
+            },
+            child: Text(
+              'Start Chat',
+              style: TextStyle(
+                color: isDarkMode ? AppColors.darkOnSurface : AppColors.lightOnSurface,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Build the list of chats based on the chat type.
   Widget _buildChatList(BuildContext context, ChatViewModel chatViewModel, GroupChatViewModel groupChatViewModel) {
     if (widget.chatType == 'individual') {
       return StreamBuilder<List<ChatModel>>(
@@ -263,6 +285,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                 stream: group.lastMessageSenderId.isNotEmpty
                     ? groupChatViewModel.getUser(group.lastMessageSenderId)
                     : Stream.value(UserModel(id: '', email: '', displayName: '', bio: '', photoURL: '')),
+
                 builder: (context, userSnapshot) {
                   String lastMessageText = group.lastMessage;
                   if (userSnapshot.hasData && group.lastMessage.isNotEmpty) {
@@ -357,6 +380,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                   stream: chat.lastMessageSenderId.isNotEmpty
                       ? groupChatViewModel.getUser(chat.lastMessageSenderId)
                       : Stream.value(UserModel(id: '', email: '', displayName: '', bio: '', photoURL: '')),
+
                   builder: (context, userSnapshot) {
                     String lastMessageText = chat.lastMessage;
                     if (userSnapshot.hasData && chat.lastMessage.isNotEmpty) {
@@ -365,6 +389,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                     }
                     return ListTile(
                       leading: CircleAvatar(child: Text(chat.name.isNotEmpty ? chat.name.substring(0, 1) : '?')),
+
                       title: Text(chat.name, style: Theme.of(context).textTheme.bodyMedium),
                       subtitle: Text(
                         '${chat.members.length} members | $lastMessageText',
@@ -389,6 +414,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
     }
   }
 
+  // Combine individual and group chat streams into a single stream.
   Stream<List<dynamic>> _combineChatsAndGroups(ChatViewModel chatViewModel, GroupChatViewModel groupChatViewModel) {
     final individualChatsStream = chatViewModel.getChats('individual');
     final groupChatsStream = groupChatViewModel.getGroups();

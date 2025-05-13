@@ -136,4 +136,16 @@ class LoginViewModel extends ChangeNotifier {
   Future<void> signOut() async {
     await _authService.signOut();
   }
+
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      await _authService.sendPasswordResetEmail(email);
+      _errorMessage = null;
+    } on FirebaseAuthException catch (e) {
+      _errorMessage = 'Failed to send password reset email: ${e.message}';
+    } catch (e) {
+      _errorMessage = 'An unexpected error occurred: $e';
+    }
+    notifyListeners();
+  }
 }

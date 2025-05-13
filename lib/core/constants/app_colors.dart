@@ -1,3 +1,6 @@
+// This file defines the `AppColors` class, which contains color constants for the app's themes.
+// It includes separate colors for light and dark themes.
+
 import 'package:flutter/material.dart';
 
 class AppColors {

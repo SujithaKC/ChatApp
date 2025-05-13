@@ -1,12 +1,16 @@
+// This file defines the `ThemeProvider` class, which manages the app's theme (light or dark).
+// It provides the current theme data and notifies listeners when the theme changes.
+
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../constants/app_colors.dart';
 
 class ThemeProvider extends ChangeNotifier {
   bool _isDarkMode = false;
 
-  bool get isDarkMode => _isDarkMode;
+  bool get isDarkMode => _isDarkMode; // Returns whether the app is in dark mode.
 
-  ThemeData get themeData => _isDarkMode ? _darkTheme : _lightTheme;
+  ThemeData get themeData => _isDarkMode ? _darkTheme : _lightTheme; // Provides the current theme data based on the mode.
 
   static final _lightTheme = ThemeData(
     brightness: Brightness.light,
@@ -73,8 +77,18 @@ class ThemeProvider extends ChangeNotifier {
     ),
   );
 
-  void toggleTheme() {
+  static const String _themeKey = 'isDarkMode';
+
+  Future<void> loadTheme() async {
+    final prefs = await SharedPreferences.getInstance();
+    _isDarkMode = prefs.getBool(_themeKey) ?? false; // Load saved theme preference.
+    notifyListeners();
+  }
+
+  Future<void> toggleTheme() async {
     _isDarkMode = !_isDarkMode;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_themeKey, _isDarkMode); // Save the updated theme preference.
     notifyListeners();
   }
 }

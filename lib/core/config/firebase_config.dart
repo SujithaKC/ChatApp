@@ -1,5 +1,8 @@
 import 'package:firebase_core/firebase_core.dart';
 
+// This file contains the Firebase configuration options for the app.
+// It is used to initialize Firebase with the correct settings.
+
 const firebaseOptions = FirebaseOptions(
   apiKey: "AIzaSyDozC1ggZEGYJ_xXaQRQrNmM9PxrHwKB4Y",
   authDomain: "chatapp-b36d8.firebaseapp.com",

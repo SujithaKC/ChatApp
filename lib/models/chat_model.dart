@@ -1,3 +1,6 @@
+// This file defines the `ChatModel` class, which represents a chat entity.
+// It includes methods for converting between Dart objects and Firestore data.
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ChatModel {

@@ -1,3 +1,6 @@
+// This file defines the `GroupModel` class, which represents a group chat entity.
+// It includes methods for converting between Dart objects and Firestore data.
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class GroupModel {
@@ -23,30 +26,30 @@ class GroupModel {
     this.createdAt,
   });
 
-  factory GroupModel.fromMap(String id, Map<String, dynamic> data) {
+  factory GroupModel.fromMap(String id, Map<String, dynamic> data) { // Creates a GroupModel instance from Firestore data.
     return GroupModel(
       id: id,
-      name: data['name'] ?? 'Unnamed Group',
-      members: List<String>.from(data['members'] ?? []),
-      admins: List<String>.from(data['admins'] ?? []),
-      adminOnlyChat: data['adminOnlyChat'] ?? false,
-      lastMessage: data['lastMessage'] ?? '',
-      lastMessageSenderId: data['lastMessageSenderId'] ?? '',
-      lastMessageTime: data['lastMessageTime'] != null ? (data['lastMessageTime'] as Timestamp).toDate() : null,
-      createdAt: data['createdAt'] != null ? (data['createdAt'] as Timestamp).toDate() : null,
+      name: data['name'] ?? 'Unnamed Group', // Retrieves the group name or defaults to 'Unnamed Group'.
+      members: List<String>.from(data['members'] ?? []), // Retrieves the list of group members.
+      admins: List<String>.from(data['admins'] ?? []), // Retrieves the list of group admins.
+      adminOnlyChat: data['adminOnlyChat'] ?? false, // Indicates if only admins can chat.
+      lastMessage: data['lastMessage'] ?? '', // Retrieves the last message in the group.
+      lastMessageSenderId: data['lastMessageSenderId'] ?? '', // Retrieves the sender ID of the last message.
+      lastMessageTime: data['lastMessageTime'] != null ? (data['lastMessageTime'] as Timestamp).toDate() : null, // Converts Firestore timestamp to DateTime.
+      createdAt: data['createdAt'] != null ? (data['createdAt'] as Timestamp).toDate() : null, // Converts Firestore timestamp to DateTime.
     );
   }
 
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toMap() { // Converts a GroupModel instance to a Firestore-compatible map.
     return {
-      'name': name,
-      'members': members,
-      'admins': admins,
-      'adminOnlyChat': adminOnlyChat,
-      'lastMessage': lastMessage,
-      'lastMessageSenderId': lastMessageSenderId,
-      'lastMessageTime': lastMessageTime,
-      'createdAt': createdAt,
+      'name': name, // Stores the group name.
+      'members': members, // Stores the list of group members.
+      'admins': admins, // Stores the list of group admins.
+      'adminOnlyChat': adminOnlyChat, // Indicates if only admins can chat.
+      'lastMessage': lastMessage, // Stores the last message in the group.
+      'lastMessageSenderId': lastMessageSenderId, // Stores the sender ID of the last message.
+      'lastMessageTime': lastMessageTime, // Converts DateTime to Firestore timestamp.
+      'createdAt': createdAt, // Converts DateTime to Firestore timestamp.
     };
   }
 }

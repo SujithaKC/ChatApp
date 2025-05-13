@@ -6,6 +6,9 @@ import '../../../core/theme/theme_provider.dart';
 import '../../../routes/app_routes.dart';
 import '../viewmodel/login_viewmodel.dart';
 
+// This file defines the `SignUpScreen` class, which provides the user interface for signing up.
+// It includes form validation, input fields, and navigation to the login screen.
+
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({Key? key}) : super(key: key);
 

@@ -1,3 +1,6 @@
+// This file defines the `UserModel` class, which represents a user entity.
+// It includes methods for converting between Dart objects and Firestore data.
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class UserModel {

@@ -8,9 +8,12 @@ import '../../../models/chat_model.dart';
 import '../viewmodel/chat_viewmodel.dart';
 import '../../profile/view/friend_profile_screen.dart';
 
+// This file defines the `ChatScreen` class, which provides the user interface for individual chats.
+// It includes message input, display, and sending functionality.
+
 class ChatScreen extends StatefulWidget {
-  final String chatId;
-  final String friendId;
+  final String chatId; // The ID of the chat to display.
+  final String friendId; // The ID of the friend participating in the chat.
 
   const ChatScreen({Key? key, required this.chatId, required this.friendId}) : super(key: key);
 
@@ -19,26 +22,20 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  final _messageController = TextEditingController();
-  final _scrollController = ScrollController();
+  final _messageController = TextEditingController(); // Controller for the message input field.
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
-      }
-    });
   }
 
   @override
   void dispose() {
-    _messageController.dispose();
-    _scrollController.dispose();
+    _messageController.dispose(); // Dispose of the message controller to free resources.
     super.dispose();
   }
 
+  // Formats a timestamp into a readable string (e.g., "HH:mm" for today or "DD/MM" for other days).
   String _formatTimestamp(DateTime? timestamp) {
     if (timestamp == null) return '';
     final now = DateTime.now();
@@ -51,11 +48,12 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => ChatViewModel(),
+      create: (_) => ChatViewModel(), // Provide a ChatViewModel instance to the widget tree.
       child: Consumer<ChatViewModel>(
         builder: (context, viewModel, child) {
           return Scaffold(
             appBar: AppBar(
+              // Display the friend's name in the app bar using a StreamBuilder.
               title: StreamBuilder(
                 stream: viewModel.getUser(widget.friendId),
                 builder: (context, snapshot) {
@@ -64,6 +62,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 },
               ),
               actions: [
+                // Navigate to the friend's profile screen when the profile icon is tapped.
                 IconButton(
                   icon: const Icon(Icons.person),
                   onPressed: () => Navigator.pushNamed(
@@ -78,36 +77,27 @@ class _ChatScreenState extends State<ChatScreen> {
               children: [
                 Expanded(
                   child: StreamBuilder<List<MessageModel>>(
-                    stream: viewModel.getMessages(widget.chatId),
+                    stream: viewModel.getMessages(widget.chatId), // Stream of messages for the chat.
                     builder: (context, snapshot) {
                       if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
                       final messages = snapshot.data!;
                       if (messages.isEmpty) {
-                        return const Center(child: Text('No messages yet'));
+                        return const Center(child: Text('No messages yet')); // Display if no messages exist.
                       }
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        if (_scrollController.hasClients) {
-                          _scrollController.animateTo(
-                            _scrollController.position.maxScrollExtent,
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeOut,
-                          );
-                        }
-                      });
                       return ListView.builder(
-                        controller: _scrollController,
-                        itemCount: messages.length,
+                        reverse: true, // Automatically scroll to the most recent messages.
+                        itemCount: messages.length, // Number of messages to display.
                         itemBuilder: (context, index) {
-                          final message = messages[index];
-                          final isMe = message.senderId == FirebaseAuth.instance.currentUser!.uid;
+                          final message = messages[messages.length - 1 - index]; // Adjust indexing for reverse order.
+                          final isMe = message.senderId == FirebaseAuth.instance.currentUser!.uid; // Check if the message is sent by the current user.
                           return Align(
-                            alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+                            alignment: isMe ? Alignment.centerRight : Alignment.centerLeft, // Align messages based on the sender.
                             child: StreamBuilder(
-                              stream: viewModel.getUser(message.senderId),
+                              stream: viewModel.getUser(message.senderId), // Stream to fetch the sender's user data.
                               builder: (context, userSnapshot) {
                                 String senderName = 'Unknown User';
                                 if (userSnapshot.hasData) {
-                                  senderName = userSnapshot.data!.displayName;
+                                  senderName = userSnapshot.data!.displayName; // Display the sender's name.
                                 }
                                 return Container(
                                   margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
@@ -129,7 +119,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                     ),
                                   ),
                                   child: Column(
-                                    crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                                    crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start, // Align text based on the sender.
                                     children: [
                                       Text(
                                         senderName,
@@ -146,12 +136,12 @@ class _ChatScreenState extends State<ChatScreen> {
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        message.text,
+                                        message.text, // Display the message text.
                                         style: Theme.of(context).textTheme.bodyMedium,
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        _formatTimestamp(message.timestamp),
+                                        _formatTimestamp(message.timestamp), // Display the formatted timestamp.
                                         style: Theme.of(context).textTheme.bodySmall,
                                       ),
                                     ],
@@ -171,7 +161,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     children: [
                       Expanded(
                         child: TextField(
-                          controller: _messageController,
+                          controller: _messageController, // Input field for typing messages.
                           decoration: const InputDecoration(
                             hintText: 'Type a message...',
                             contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -180,24 +170,15 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                       const SizedBox(width: 8),
                       IconButton(
-                        icon: const Icon(Icons.send, color: AppColors.infoBlue),
+                        icon: const Icon(Icons.send, color: AppColors.infoBlue), // Send button.
                         onPressed: () async {
-                          await viewModel.sendMessage(widget.chatId, _messageController.text);
+                          await viewModel.sendMessage(widget.chatId, _messageController.text); // Send the message.
                           if (viewModel.errorMessage != null) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(viewModel.errorMessage!)),
+                              SnackBar(content: Text(viewModel.errorMessage!)), // Display error if sending fails.
                             );
                           } else {
-                            _messageController.clear();
-                            Future.delayed(const Duration(milliseconds: 100), () {
-                              if (_scrollController.hasClients) {
-                                _scrollController.animateTo(
-                                  _scrollController.position.maxScrollExtent,
-                                  duration: const Duration(milliseconds: 300),
-                                  curve: Curves.easeOut,
-                                );
-                              }
-                            });
+                            _messageController.clear(); // Clear the input field after sending.
                           }
                         },
                       ),
